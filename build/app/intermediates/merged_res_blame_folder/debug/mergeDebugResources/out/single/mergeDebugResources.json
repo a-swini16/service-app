@@ -1,0 +1,34 @@
+[
+    {
+        "merged": "C:\\Users\\aswin\\.gradle\\daemon\\8.12\\com.example.app_dev.app-debug-60:\\mipmap-xhdpi_ic_launcher.png.flat",
+        "source": "C:\\Users\\aswin\\.gradle\\daemon\\8.12\\com.example.app_dev.app-main-55:\\mipmap-xhdpi\\ic_launcher.png"
+    },
+    {
+        "merged": "C:\\Users\\aswin\\.gradle\\daemon\\8.12\\com.example.app_dev.app-debug-60:\\mipmap-mdpi_ic_launcher.png.flat",
+        "source": "C:\\Users\\aswin\\.gradle\\daemon\\8.12\\com.example.app_dev.app-main-55:\\mipmap-mdpi\\ic_launcher.png"
+    },
+    {
+        "merged": "com.example.app_dev.app-debug-60:/xml_network_security_config.xml.flat",
+        "source": "com.example.app_dev.app-main-55:/xml/network_security_config.xml"
+    },
+    {
+        "merged": "C:\\Users\\aswin\\.gradle\\daemon\\8.12\\com.example.app_dev.app-debug-60:\\mipmap-hdpi_ic_launcher.png.flat",
+        "source": "C:\\Users\\aswin\\.gradle\\daemon\\8.12\\com.example.app_dev.app-main-55:\\mipmap-hdpi\\ic_launcher.png"
+    },
+    {
+        "merged": "C:\\Users\\aswin\\.gradle\\daemon\\8.12\\com.example.app_dev.app-debug-60:\\mipmap-xxhdpi_ic_launcher.png.flat",
+        "source": "C:\\Users\\aswin\\.gradle\\daemon\\8.12\\com.example.app_dev.app-main-55:\\mipmap-xxhdpi\\ic_launcher.png"
+    },
+    {
+        "merged": "C:\\Users\\aswin\\.gradle\\daemon\\8.12\\com.example.app_dev.app-debug-60:\\xml_network_security_config.xml.flat",
+        "source": "C:\\Users\\aswin\\.gradle\\daemon\\8.12\\com.example.app_dev.app-main-55:\\xml\\network_security_config.xml"
+    },
+    {
+        "merged": "C:\\Users\\aswin\\.gradle\\daemon\\8.12\\com.example.app_dev.app-debug-60:\\drawable-v21_launch_background.xml.flat",
+        "source": "C:\\Users\\aswin\\.gradle\\daemon\\8.12\\com.example.app_dev.app-main-55:\\drawable-v21\\launch_background.xml"
+    },
+    {
+        "merged": "C:\\Users\\aswin\\.gradle\\daemon\\8.12\\com.example.app_dev.app-debug-60:\\mipmap-xxxhdpi_ic_launcher.png.flat",
+        "source": "C:\\Users\\aswin\\.gradle\\daemon\\8.12\\com.example.app_dev.app-main-55:\\mipmap-xxxhdpi\\ic_launcher.png"
+    }
+]

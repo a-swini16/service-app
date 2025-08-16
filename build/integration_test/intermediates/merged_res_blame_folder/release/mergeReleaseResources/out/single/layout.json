@@ -1,0 +1,22 @@
+[
+    {
+        "merged": "dev.flutter.integration_test-release-23:/layout/custom_dialog.xml",
+        "source": "dev.flutter.integration_test-core-1.13.1-10:/layout/custom_dialog.xml"
+    },
+    {
+        "merged": "dev.flutter.integration_test-release-23:/layout/notification_template_part_chronometer.xml",
+        "source": "dev.flutter.integration_test-core-1.13.1-10:/layout/notification_template_part_chronometer.xml"
+    },
+    {
+        "merged": "dev.flutter.integration_test-release-23:/layout/ime_secondary_split_test_activity.xml",
+        "source": "dev.flutter.integration_test-core-1.13.1-10:/layout/ime_secondary_split_test_activity.xml"
+    },
+    {
+        "merged": "dev.flutter.integration_test-release-23:/layout/ime_base_split_test_activity.xml",
+        "source": "dev.flutter.integration_test-core-1.13.1-10:/layout/ime_base_split_test_activity.xml"
+    },
+    {
+        "merged": "dev.flutter.integration_test-release-23:/layout/notification_template_part_time.xml",
+        "source": "dev.flutter.integration_test-core-1.13.1-10:/layout/notification_template_part_time.xml"
+    }
+]

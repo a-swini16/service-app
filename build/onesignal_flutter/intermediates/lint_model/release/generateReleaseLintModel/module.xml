@@ -1,0 +1,26 @@
+<lint-module
+    format="1"
+    dir="C:\Users\aswin\AppData\Local\Pub\Cache\hosted\pub.dev\onesignal_flutter-5.3.4\android"
+    name=":onesignal_flutter"
+    type="LIBRARY"
+    maven="com.onesignal.flutter:onesignal_flutter:5.3.4"
+    agpVersion="8.7.3"
+    buildFolder="C:\Users\aswin\Documents\app_dev\build\onesignal_flutter"
+    bootClassPath="C:\Users\aswin\AppData\Local\Android\Sdk\platforms\android-34\android.jar;C:\Users\aswin\AppData\Local\Android\Sdk\build-tools\34.0.0\core-lambda-stubs.jar"
+    javaSourceLevel="1.8"
+    compileTarget="android-34"
+    neverShrinking="true">
+  <lintOptions
+      disable="InvalidPackage"
+      abortOnError="true"
+      absolutePaths="true"
+      checkReleaseBuilds="true"
+      explainIssues="true">
+    <severities>
+      <severity
+        id="InvalidPackage"
+        severity="IGNORE" />
+    </severities>
+  </lintOptions>
+  <variant name="release"/>
+</lint-module>

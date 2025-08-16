@@ -1,0 +1,18 @@
+[
+    {
+        "merged": "com.onesignal.flutter.onesignal_flutter-release-43:/layout-v21/notification_template_custom_big.xml",
+        "source": "com.onesignal.flutter.onesignal_flutter-core-1.13.1-18:/layout-v21/notification_template_custom_big.xml"
+    },
+    {
+        "merged": "com.onesignal.flutter.onesignal_flutter-release-43:/layout-v21/notification_action.xml",
+        "source": "com.onesignal.flutter.onesignal_flutter-core-1.13.1-18:/layout-v21/notification_action.xml"
+    },
+    {
+        "merged": "com.onesignal.flutter.onesignal_flutter-release-43:/layout-v21/notification_action_tombstone.xml",
+        "source": "com.onesignal.flutter.onesignal_flutter-core-1.13.1-18:/layout-v21/notification_action_tombstone.xml"
+    },
+    {
+        "merged": "com.onesignal.flutter.onesignal_flutter-release-43:/layout-v21/notification_template_icon_group.xml",
+        "source": "com.onesignal.flutter.onesignal_flutter-core-1.13.1-18:/layout-v21/notification_template_icon_group.xml"
+    }
+]

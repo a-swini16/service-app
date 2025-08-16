@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <bytecodeTargetLevel>
+      <module name="android.firebase_core" target="22" />
+      <module name="android.firebase_messaging" target="22" />
+      <module name="android.flutter_local_notifications" target="22" />
+    </bytecodeTargetLevel>
+  </component>
+</project>
