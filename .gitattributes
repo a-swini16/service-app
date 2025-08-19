@@ -1,4 +1,4 @@
-build/app/intermediates/merged_native_libs/**/libflutter.so filter=lfs diff=lfs merge=lfs -text
-build/app/outputs/apk/debug/app-debug.apk filter=lfs diff=lfs merge=lfs -text
 .dart_tool/flutter_build/**/app.dill filter=lfs diff=lfs merge=lfs -text
 build/*.cache.dill.track.dill filter=lfs diff=lfs merge=lfs -text
+build/app/intermediates/merged_native_libs/**/libflutter.so filter=lfs diff=lfs merge=lfs -text
+build/app/outputs/apk/debug/app-debug.apk filter=lfs diff=lfs merge=lfs -text
