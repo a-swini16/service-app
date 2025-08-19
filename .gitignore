@@ -22,6 +22,9 @@ build/
 **/merged_native_libs/**/libflutter.so
 **/app-debug.apk
 **/app.dill
+**/kernel_blob.bin
+**/zip-cache/*
+**/flutter-apk/*.apk
 
 # Android
 **/android/app/debug/
@@ -29,6 +32,7 @@ build/
 **/android/app/release/
 **/intermediates/merged_native_libs/
 **/intermediates/incremental/
+**/intermediates/assets/
 
 # iOS
 **/ios/Flutter/App.framework/
