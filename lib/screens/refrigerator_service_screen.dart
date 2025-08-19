@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../models/service_model.dart';
+import '../screens/booking_form_screen.dart';
 
 class RefrigeratorServiceScreen extends StatelessWidget {
   final ServiceModel service = ServiceModel(
     id: '3',
-    name: 'refrigerator_service',
+    name: 'refrigerator_repair', // Changed from 'refrigerator_service' to 'refrigerator_repair' to match the service type in the form
     displayName: 'Refrigerator Service & Repair',
     description:
         'Professional refrigerator repair, maintenance, and installation services',
@@ -32,17 +33,9 @@ class RefrigeratorServiceScreen extends StatelessWidget {
               height: 200,
               width: double.infinity,
               decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Colors.indigo[100]!, Colors.indigo[300]!],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-              ),
-              child: Center(
-                child: Icon(
-                  Icons.kitchen,
-                  size: 80,
-                  color: Colors.indigo[800],
+                image: DecorationImage(
+                  image: AssetImage('assets/images/refrigrator.png'),
+                  fit: BoxFit.cover,
                 ),
               ),
             ),
@@ -184,10 +177,14 @@ class RefrigeratorServiceScreen extends StatelessWidget {
                     width: double.infinity,
                     child: ElevatedButton(
                       onPressed: () {
-                        Navigator.pushNamed(
+                        // Use direct navigation with constructor instead of named route
+                        Navigator.push(
                           context,
-                          '/booking-form',
-                          arguments: service,
+                          MaterialPageRoute(
+                            builder: (context) => BookingFormScreen(
+                              serviceType: 'refrigerator_repair', // Use refrigerator_repair to match the service type in the form
+                            ),
+                          ),
                         );
                       },
                       style: ElevatedButton.styleFrom(

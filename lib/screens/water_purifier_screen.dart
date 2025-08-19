@@ -32,17 +32,9 @@ class WaterPurifierScreen extends StatelessWidget {
               height: 200,
               width: double.infinity,
               decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Colors.blue[100]!, Colors.blue[300]!],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-              ),
-              child: Center(
-                child: Icon(
-                  Icons.water_drop,
-                  size: 80,
-                  color: Colors.blue[800],
+                image: DecorationImage(
+                  image: AssetImage('assets/images/water.png'),
+                  fit: BoxFit.cover,
                 ),
               ),
             ),

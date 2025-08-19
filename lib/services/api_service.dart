@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
+import 'package:om_enterprises/services/notification_service.dart';
 import '../constants/app_constants.dart';
 import '../models/booking_model.dart';
 import '../models/user_model.dart';
@@ -452,6 +453,30 @@ class ApiService {
       );
 
       final responseData = jsonDecode(response.body);
+      
+      // Create notification for admin when booking is created
+      if (responseData['success'] && responseData['booking'] != null) {
+        final booking = responseData['booking'];
+        final bookingId = booking['_id'] ?? booking['id'];
+        final customerName = bookingData['customerName'] ?? 'Customer';
+        final serviceType = bookingData['serviceType'] ?? 'service';
+        
+        // Create admin notification
+        await NotificationService.createAdminNotification({
+          'title': 'New Booking Request',
+          'message': '$customerName has requested a $serviceType service',
+          'type': 'booking_created',
+          'priority': 'high',
+          'relatedBookingId': bookingId,
+          'data': {
+            'bookingId': bookingId,
+            'serviceType': serviceType,
+            'customerName': customerName,
+          },
+          'actionUrl': '/admin/bookings',
+        });
+      }
+      
       return responseData;
     } catch (e) {
       return {

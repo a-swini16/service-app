@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../models/service_model.dart';
+import '../screens/booking_form_screen.dart';
 
 class AcServiceScreen extends StatelessWidget {
   final ServiceModel service = ServiceModel(
     id: '2',
-    name: 'ac_service',
+    name: 'ac_repair', // Changed from 'ac_service' to 'ac_repair' to match the service type in the form
     displayName: 'AC Service & Repair',
     description:
         'Professional AC installation, maintenance, and repair services',
-    basePrice: 800.0,
+    basePrice: 800.0, // Added basePrice parameter
     duration: 90,
     category: 'Home Appliances',
   );
@@ -32,17 +33,9 @@ class AcServiceScreen extends StatelessWidget {
               height: 200,
               width: double.infinity,
               decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Colors.cyan[100]!, Colors.cyan[300]!],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-              ),
-              child: Center(
-                child: Icon(
-                  Icons.ac_unit,
-                  size: 80,
-                  color: Colors.cyan[800],
+                image: DecorationImage(
+                  image: AssetImage('assets/images/ac.png'),
+                  fit: BoxFit.cover,
                 ),
               ),
             ),
@@ -163,10 +156,14 @@ class AcServiceScreen extends StatelessWidget {
                     width: double.infinity,
                     child: ElevatedButton(
                       onPressed: () {
-                        Navigator.pushNamed(
+                        // Use direct navigation with constructor instead of named route
+                        Navigator.push(
                           context,
-                          '/booking-form',
-                          arguments: service,
+                          MaterialPageRoute(
+                            builder: (context) => BookingFormScreen(
+                              serviceType: 'ac_repair', // Use ac_repair to match the service type in the form
+                            ),
+                          ),
                         );
                       },
                       style: ElevatedButton.styleFrom(

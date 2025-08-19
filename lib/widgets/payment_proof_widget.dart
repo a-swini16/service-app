@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../models/booking_model.dart';
 import '../services/api_service.dart';
+import '../constants/app_constants.dart';
 
 class PaymentProofWidget extends StatefulWidget {
   final BookingModel booking;
@@ -94,7 +95,7 @@ class _PaymentProofWidgetState extends State<PaymentProofWidget> {
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(8),
                     child: CachedNetworkImage(
-                      imageUrl: 'http://192.168.1.100:3000/api/payment/proof/${paymentProof['filename']}',
+                      imageUrl: '${AppConstants.baseUrl}/payment/proof/${paymentProof['filename']}',
                       fit: BoxFit.cover,
                       placeholder: (context, url) => const Center(
                         child: CircularProgressIndicator(),

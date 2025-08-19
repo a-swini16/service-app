@@ -72,6 +72,7 @@ class BookingModel {
   final String? rejectionReason;
   final DateTime createdAt;
   final Map<String, dynamic>? paymentProof;
+  final Map<String, dynamic>? _serviceSpecificData; // Private field to store service-specific data
 
   BookingModel({
     required this.id,
@@ -102,7 +103,9 @@ class BookingModel {
     this.rejectionReason,
     required this.createdAt,
     this.paymentProof,
-  }) : statusHistory = statusHistory ?? const [];
+    Map<String, dynamic>? serviceSpecificData,
+  }) : statusHistory = statusHistory ?? const [],
+       _serviceSpecificData = serviceSpecificData;
 
   factory BookingModel.fromJson(Map<String, dynamic> json) {
     // Handle user field - it can be either a string (userId) or an object
@@ -132,6 +135,14 @@ class BookingModel {
           .toList();
     }
 
+    // Extract service-specific data if available
+    Map<String, dynamic>? serviceSpecificData;
+    if (json['serviceSpecificData'] != null) {
+      serviceSpecificData = Map<String, dynamic>.from(json['serviceSpecificData']);
+    } else if (json['serviceDetails'] != null) {
+      serviceSpecificData = Map<String, dynamic>.from(json['serviceDetails']);
+    }
+    
     return BookingModel(
       id: json['_id'] ?? json['id'] ?? '',
       userId: userId,
@@ -163,6 +174,7 @@ class BookingModel {
       rejectionReason: json['rejectionReason'],
       createdAt: _parseDateTime(json['createdAt']) ?? DateTime.now(),
       paymentProof: json['paymentProof'] as Map<String, dynamic>?,
+      serviceSpecificData: serviceSpecificData,
     );
   }
 
@@ -193,6 +205,7 @@ class BookingModel {
       'paymentAmount': paymentAmount,
       'adminNotes': adminNotes,
       'workerNotes': workerNotes,
+      'serviceSpecificData': serviceSpecificData,
     };
   }
 
@@ -372,5 +385,34 @@ class BookingModel {
       rejectionReason: rejectionReason ?? this.rejectionReason,
       createdAt: createdAt ?? this.createdAt,
     );
+  }
+
+  // Getter for service-specific data
+  Map<String, dynamic> get serviceSpecificData {
+    // If we have stored service-specific data, return it
+    if (_serviceSpecificData != null) {
+      return Map<String, dynamic>.from(_serviceSpecificData!);
+    }
+    
+    // Otherwise, create default values based on service type
+    final Map<String, dynamic> data = {};
+    
+    // Add service-specific fields based on service type
+    if (serviceType == 'ac_repair') {
+      // Default values for AC repair service
+      data['acType'] = 'Split AC';
+      data['acBrand'] = 'Generic';
+      data['acCapacity'] = '1.5 Ton';
+      data['installationYear'] = '2020';
+      data['issueType'] = 'Not Cooling';
+      data['roomSize'] = '150';
+    } else if (serviceType == 'refrigerator_repair') {
+      // Default values for refrigerator repair service
+      data['fridgeType'] = 'Double Door';
+      data['fridgeBrand'] = 'Generic';
+      data['capacity'] = '300L';
+    }
+    
+    return data; // Return the populated map
   }
 }

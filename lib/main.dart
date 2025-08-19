@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:om_enterprises/screens/user_notifications_screen.dart';
 import 'package:provider/provider.dart';
 import 'providers/auth_provider.dart';
 import 'providers/booking_provider.dart';
@@ -6,6 +7,8 @@ import 'providers/notification_provider.dart';
 import 'providers/service_provider.dart';
 import 'providers/websocket_provider.dart';
 import 'providers/offline_data_provider.dart';
+import 'screens/admin_panel_screen.dart';
+import 'services/onesignal_service.dart';
 
 import 'services/navigation_service.dart';
 import 'screens/login_screen.dart';
@@ -42,13 +45,58 @@ void main() async {
   await ApiService.initialize();
 
   // Initialize OneSignal notifications for production
-  // OneSignal initialization is handled in the OneSignalService
+  await OneSignalService().initialize();
 
   runApp(const MyApp());
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Use a post-frame callback to ensure the provider is available
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      
+      try {
+        final wsProvider = Provider.of<WebSocketProvider>(context, listen: false);
+        
+        switch (state) {
+          case AppLifecycleState.resumed:
+            // App in foreground, reconnect WebSocket
+            wsProvider.handleAppLifecycleChange(true);
+            break;
+          case AppLifecycleState.paused:
+          case AppLifecycleState.detached:
+            // App in background or closed
+            wsProvider.handleAppLifecycleChange(false);
+            break;
+          default:
+            break;
+        }
+      } catch (e) {
+        debugPrint('Error handling lifecycle change: $e');
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -188,6 +236,8 @@ class MyApp extends StatelessWidget {
               paymentMethod: args?['paymentMethod'] ?? 'cash_on_service',
             );
           },
+          '/notifications': (context) => const UserNotificationsScreen(),
+          '/admin': (context) => const AdminPanelScreen(),
         },
       ),
     );

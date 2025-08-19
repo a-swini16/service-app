@@ -10,7 +10,7 @@ class DTDCServiceScreen extends StatefulWidget {
 class _DTDCServiceScreenState extends State<DTDCServiceScreen> {
   final ServiceModel service = ServiceModel(
     id: '4',
-    name: 'dtdc_courier',
+    name: 'dtdc_service',
     displayName: 'DTDC Courier Service',
     description:
         'Professional courier and logistics services for all your shipping needs',
@@ -21,7 +21,9 @@ class _DTDCServiceScreenState extends State<DTDCServiceScreen> {
 
   // DTDC Contact Information
   static const String dtdcPhoneNumber = '+91 94393 46257';
-  static const String dtdcLocation = '22°05\'45.2"N 85°23\'02.8"E';
+  static const String dtdcLocation = 'https://maps.app.goo.gl/aRFUsCJvSDoNwpXU8';
+  static const double latitude = 22.095889;
+  static const double longitude = 85.384111;
 
   Future<void> _makePhoneCall() async {
     try {
@@ -85,22 +87,30 @@ class _DTDCServiceScreenState extends State<DTDCServiceScreen> {
   }
 
   Future<void> _openLocation() async {
-    // Convert coordinates to decimal format for Google Maps
-    // 22°05'45.2"N = 22.095889°N, 85°23'02.8"E = 85.384111°E
-    const double latitude = 22.095889;
-    const double longitude = 85.384111;
-
-    final Uri launchUri = Uri.parse(
-        'https://www.google.com/maps/search/?api=1&query=$latitude,$longitude');
+    // Use the direct Google Maps link
+    final Uri launchUri = Uri.parse('https://maps.app.goo.gl/aRFUsCJvSDoNwpXU8');
 
     try {
+      print('🔍 Attempting to open maps with direct link');
+      print('🔍 URI: $launchUri');
+      
       if (await canLaunchUrl(launchUri)) {
-        await launchUrl(launchUri, mode: LaunchMode.externalApplication);
+        final bool launched = await launchUrl(launchUri, mode: LaunchMode.externalApplication);
+        
+        if (launched) {
+          print('✅ Maps launched successfully');
+          _showSuccessSnackBar('Opening location in Google Maps');
+        } else {
+          print('❌ Failed to launch maps');
+          _showErrorSnackBar(context, 'Failed to open maps application');
+        }
       } else {
-        throw 'Could not launch maps';
+        print('❌ Cannot launch maps');
+        _showErrorSnackBar(context, 'Maps application not available');
       }
     } catch (e) {
-      print('Error opening location: $e');
+      print('❌ Error opening location: $e');
+      _showErrorSnackBar(context, 'Error opening maps: $e');
     }
   }
 
@@ -295,7 +305,7 @@ class _DTDCServiceScreenState extends State<DTDCServiceScreen> {
                         ),
                       ),
                       subtitle: Text(
-                        dtdcLocation,
+                        'Barbil, Odisha (Click to open in Maps)',
                         style: TextStyle(
                           fontSize: 14,
                           color: Colors.blue[700],

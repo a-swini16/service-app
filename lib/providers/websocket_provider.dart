@@ -154,6 +154,23 @@ class WebSocketProvider extends ChangeNotifier {
       disconnect();
     }
   }
+  
+  // Handle app lifecycle changes (background/foreground)
+  void handleAppLifecycleChange(bool isInForeground) {
+    if (isInForeground) {
+      // App came to foreground, check connection and reconnect if needed
+      if (_authProvider.isLoggedIn && _authProvider.accessToken != null && !_isConnected) {
+        debugPrint('WebSocketProvider: App returned to foreground, reconnecting WebSocket');
+        connect();
+      }
+    } else {
+      // App went to background, we can optionally disconnect to save resources
+      // or keep the connection for real-time updates
+      debugPrint('WebSocketProvider: App went to background, maintaining WebSocket connection');
+      // If you want to disconnect when app is in background, uncomment the next line
+      // disconnect();
+    }
+  }
 
   // Connect to WebSocket
   Future<void> connect({String? baseUrl}) async {

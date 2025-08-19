@@ -68,6 +68,23 @@ class UpiQrService {
     }
   }
 
+  /// Get app package name for UPI apps
+  static String? _getAppPackageName(String appName) {
+    switch (appName.toLowerCase()) {
+      case 'phonepe':
+        return 'com.phonepe.app';
+      case 'google pay':
+      case 'googlepay':
+        return 'com.google.android.apps.nbu.paisa.user';
+      case 'paytm':
+        return 'net.one97.paytm';
+      case 'bhim':
+        return 'in.org.npci.upiapp';
+      default:
+        return null;
+    }
+  }
+
   /// Launch specific UPI app with payment details
   static Future<bool> launchSpecificUpiApp({
     required String appName,
@@ -76,80 +93,128 @@ class UpiQrService {
     String? customerName,
   }) async {
     try {
-      String deepLinkUrl;
-
       // Generate transaction note
       final note = customerName != null
           ? 'Service Payment - $bookingId - $customerName'
           : 'Service Payment - $bookingId';
 
-      // App-specific deep links with amount and payment details
-      switch (appName.toLowerCase()) {
-        case 'phonepe':
-          // PhonePe deep link format
-          deepLinkUrl =
-              'phonepe://pay?pa=$businessUpiId&pn=${Uri.encodeComponent(businessName)}&am=${amount.toStringAsFixed(2)}&tn=${Uri.encodeComponent(note)}';
-          break;
-
-        case 'google pay':
-        case 'googlepay':
-          // Google Pay deep link format
-          deepLinkUrl =
-              'gpay://upi/pay?pa=$businessUpiId&pn=${Uri.encodeComponent(businessName)}&am=${amount.toStringAsFixed(2)}&tn=${Uri.encodeComponent(note)}';
-          break;
-
-        case 'paytm':
-          // Paytm deep link format
-          deepLinkUrl =
-              'paytmmp://pay?pa=$businessUpiId&pn=${Uri.encodeComponent(businessName)}&am=${amount.toStringAsFixed(2)}&tn=${Uri.encodeComponent(note)}';
-          break;
-
-        case 'bhim':
-          // BHIM deep link format
-          deepLinkUrl =
-              'bhim://upi/pay?pa=$businessUpiId&pn=${Uri.encodeComponent(businessName)}&am=${amount.toStringAsFixed(2)}&tn=${Uri.encodeComponent(note)}';
-          break;
-
-        default:
-          // Fallback to generic UPI deep link
-          deepLinkUrl = generateUpiUrl(
-            upiId: businessUpiId,
-            payeeName: businessName,
-            amount: amount,
-            transactionNote: note,
+      // Create the base UPI URL with all parameters
+      final baseUpiUrl = 'upi://pay?pa=$businessUpiId'
+          '&pn=${Uri.encodeComponent(businessName)}'
+          '&am=${amount.toStringAsFixed(2)}'
+          '&tn=${Uri.encodeComponent(note)}'
+          '&cu=INR'
+          '&mode=04';
+      
+      print('🔍 DEBUG: Base UPI URL: $baseUpiUrl');
+      
+      // Try to launch with specific app package if available
+      final packageName = _getAppPackageName(appName);
+      if (packageName != null) {
+        // First try with package name for direct app launch
+        try {
+          final appSpecificUri = Uri.parse(baseUpiUrl);
+          print('🔍 DEBUG: Trying to launch $appName with package: $packageName');
+          
+          final success = await launchUrl(
+            appSpecificUri,
+            mode: LaunchMode.externalApplication,
           );
-      }
-
-      print('🔍 DEBUG: Launching $appName with URL: $deepLinkUrl');
-
-      // Try to launch the specific app
-      if (await canLaunchUrl(Uri.parse(deepLinkUrl))) {
+          
+          if (success) {
+            print('✅ Successfully launched $appName');
+            return true;
+          }
+        } catch (e) {
+          print('⚠️ Error launching with package: $e');
+          // Continue to try without package specification
+        }
+    }
+      
+      // Try to launch with standard URI
+      print('🔍 DEBUG: Launching $appName with standard URL: $baseUpiUrl');
+      if (await canLaunchUrl(Uri.parse(baseUpiUrl))) {
         final success = await launchUrl(
-          Uri.parse(deepLinkUrl),
+          Uri.parse(baseUpiUrl),
           mode: LaunchMode.externalApplication,
         );
 
         if (success) {
-          print('✅ Successfully launched $appName');
+          print('✅ Successfully launched UPI payment');
           return true;
         }
       }
 
-      // Fallback: Try generic UPI deep link
-      print('⚠️ Fallback: Trying generic UPI deep link');
-      return await launchUpiPayment(
-        amount: amount,
-        bookingId: bookingId,
-        customerName: customerName,
-      );
+      // If we get here, try the fallback method
+      print('⚠️ Trying fallback method for UPI payment');
+      return await _tryFallbackUpiLaunch(amount, bookingId, customerName);
     } catch (e) {
-      print('❌ Error launching $appName: $e');
-      // Fallback to generic UPI deep link
-      return await launchUpiPayment(
+        print('❌ Error launching $appName: $e');
+        // Fallback to generic UPI deep link
+        return await _tryFallbackUpiLaunch(amount, bookingId, customerName);
+    }
+  }
+
+  /// Try fallback methods for UPI payment launch
+  static Future<bool> _tryFallbackUpiLaunch(
+    double amount,
+    String bookingId,
+    String? customerName,
+  ) async {
+    try {
+      // Generate transaction note
+      final note = customerName != null
+          ? 'Service Payment - $bookingId - $customerName'
+          : 'Service Payment - $bookingId';
+      
+      // Try with the generic UPI URL first
+      final genericUpiUrl = 'upi://pay?pa=$businessUpiId'
+          '&pn=${Uri.encodeComponent(businessName)}'
+          '&am=${amount.toStringAsFixed(2)}'
+          '&tn=${Uri.encodeComponent(note)}'
+          '&cu=INR';
+      
+      print('🔍 DEBUG: Trying generic UPI URL: $genericUpiUrl');
+      
+      if (await canLaunchUrl(Uri.parse(genericUpiUrl))) {
+        final success = await launchUrl(
+          Uri.parse(genericUpiUrl),
+          mode: LaunchMode.externalApplication,
+        );
+        
+        if (success) {
+          print('✅ Successfully launched generic UPI payment');
+          return true;
+        }
+      }
+      
+      // As a last resort, try the most basic UPI URL
+      final basicUpiUrl = generateUpiUrl(
+        upiId: businessUpiId,
+        payeeName: businessName,
         amount: amount,
-        bookingId: bookingId,
-        customerName: customerName,
+        transactionNote: note,
       );
+      
+      print('🔍 DEBUG: Trying basic UPI URL: $basicUpiUrl');
+      
+      if (await canLaunchUrl(Uri.parse(basicUpiUrl))) {
+        final success = await launchUrl(
+          Uri.parse(basicUpiUrl),
+          mode: LaunchMode.externalApplication,
+        );
+        
+        if (success) {
+          print('✅ Successfully launched basic UPI payment');
+          return true;
+        }
+      }
+      
+      print('❌ All UPI launch attempts failed');
+      return false;
+    } catch (e) {
+      print('❌ Error in fallback UPI launch: $e');
+      return false;
     }
   }
 

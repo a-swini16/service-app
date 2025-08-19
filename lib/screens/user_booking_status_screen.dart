@@ -1151,7 +1151,7 @@ class _UserBookingStatusScreenState extends State<UserBookingStatusScreen>
         ),
         const SizedBox(height: 4),
         Text(
-          'Amount: ₹${booking.paymentAmount?.toInt() ?? 0}',
+          'Amount: ₹${(booking.status == 'completed' && booking.actualAmount != null) ? booking.actualAmount!.toInt() : (booking.paymentAmount?.toInt() ?? 0)}',
           style: TextStyle(
             fontWeight: FontWeight.bold,
             color: Colors.green[600],
@@ -1165,16 +1165,7 @@ class _UserBookingStatusScreenState extends State<UserBookingStatusScreen>
             style: TextStyle(color: Colors.grey[700]),
           ),
         ],
-        if (booking.actualAmount != null) ...[
-          const SizedBox(height: 4),
-          Text(
-            'Final Amount: ₹${booking.actualAmount!.toInt()}',
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              color: Colors.blue[600],
-            ),
-          ),
-        ],
+        // Final amount is now shown as the main amount when booking is completed
       ],
     );
   }
@@ -1199,15 +1190,12 @@ class _UserBookingStatusScreenState extends State<UserBookingStatusScreen>
               if (booking.description?.isNotEmpty == true)
                 _buildDetailRow('Description', booking.description!),
               _buildDetailRow(
-                  'Amount', '₹${booking.paymentAmount?.toInt() ?? 0}'),
+                  'Amount', '₹${(booking.status == 'completed' && booking.actualAmount != null) ? booking.actualAmount!.toInt() : (booking.paymentAmount?.toInt() ?? 0)}'),
               _buildDetailRow(
                   'Payment Method', booking.paymentMethodDisplayName),
               if (booking.assignedEmployeeName != null)
                 _buildDetailRow(
                     'Assigned Worker', booking.assignedEmployeeName!),
-              if (booking.actualAmount != null)
-                _buildDetailRow(
-                    'Final Amount', '₹${booking.actualAmount!.toInt()}'),
               if (booking.adminNotes?.isNotEmpty == true)
                 _buildDetailRow('Admin Notes', booking.adminNotes!),
               if (booking.workerNotes?.isNotEmpty == true)

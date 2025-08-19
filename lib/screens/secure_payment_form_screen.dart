@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../models/booking_model.dart';
+import 'package:om_enterprises/models/booking_model.dart';
+//import '../models/booking_model.dart';
+import '../services/upi_qr_service.dart';
 
 class SecurePaymentFormScreen extends StatefulWidget {
   const SecurePaymentFormScreen({Key? key}) : super(key: key);
@@ -382,6 +384,53 @@ class _SecurePaymentFormScreenState extends State<SecurePaymentFormScreen> {
                             '₹${(_booking!.actualAmount ?? _booking!.paymentAmount ?? 0).toInt()}'),
                       ],
                     ),
+                    const SizedBox(height: 8),
+                    // Show service details based on service type
+                    if (_booking!.serviceType == 'ac_repair' || _booking!.serviceType == 'refrigerator_repair' || _booking!.serviceType == 'water_purifier')
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.blue[50],
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Service Details:',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                                color: Colors.blue[800],
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            // Display specific details for AC repair
+                            if (_booking!.serviceType == 'ac_repair') ...[                              
+                              _buildServiceDetailRow('AC Type', _booking!.serviceSpecificData['acType'] ?? 'Not specified'),
+                              _buildServiceDetailRow('AC Brand', _booking!.serviceSpecificData['acBrand'] ?? 'Not specified'),
+                              _buildServiceDetailRow('AC Capacity', _booking!.serviceSpecificData['acCapacity'] ?? 'Not specified'),
+                              _buildServiceDetailRow('Installation Year', _booking!.serviceSpecificData['installationYear'] ?? 'Not specified'),
+                              _buildServiceDetailRow('Primary Issue', _booking!.serviceSpecificData['issueType'] ?? 'Not specified'),
+                              _buildServiceDetailRow('Room Size', _booking!.serviceSpecificData['roomSize'] != null ? '${_booking!.serviceSpecificData['roomSize']} Sq Ft' : 'Not specified'),
+                            ] else if (_booking!.serviceType == 'refrigerator_repair') ...[                              
+                              _buildServiceDetailRow('Refrigerator Type', _booking!.serviceSpecificData['fridgeType'] ?? 'Not specified'),
+                              _buildServiceDetailRow('Brand', _booking!.serviceSpecificData['fridgeBrand'] ?? 'Not specified'),
+                              _buildServiceDetailRow('Capacity', _booking!.serviceSpecificData['capacity'] ?? 'Not specified'),
+                              _buildServiceDetailRow('Purchase Year', _booking!.serviceSpecificData['purchaseYear'] ?? 'Not specified'),
+                              _buildServiceDetailRow('Primary Issue', _booking!.serviceSpecificData['issueType'] ?? 'Not specified'),
+                            ], // Added comma here 
+                            if (_booking!.serviceType != 'ac_repair' && _booking!.serviceType != 'refrigerator_repair')
+                              Text(
+                                _booking!.description ?? 'No specific details provided',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: Colors.blue[700],
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
                     const Divider(),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -620,7 +669,41 @@ class _SecurePaymentFormScreenState extends State<SecurePaymentFormScreen> {
         keyboardType: TextInputType.emailAddress,
         validator: _validateUPI,
       ),
+      const SizedBox(height: 24),
+      const Text(
+        'Or pay directly using UPI apps:',
+        style: TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
       const SizedBox(height: 16),
+      Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          _buildUpiAppButton(
+            'PhonePe',
+            '📱',
+            Color(0xFF5f259f),
+          ),
+          _buildUpiAppButton(
+            'Google Pay',
+            '💳',
+            Color(0xFF4285f4),
+          ),
+          _buildUpiAppButton(
+            'Paytm',
+            '💰',
+            Color(0xFF00baf2),
+          ),
+          _buildUpiAppButton(
+            'BHIM',
+            '🏛️',
+            Color(0xFF0066cc),
+          ),
+        ],
+      ),
+      const SizedBox(height: 24),
       Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
@@ -632,7 +715,7 @@ class _SecurePaymentFormScreenState extends State<SecurePaymentFormScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Popular UPI Apps',
+              'Popular UPI IDs',
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 color: Colors.blue[800],
@@ -647,6 +730,104 @@ class _SecurePaymentFormScreenState extends State<SecurePaymentFormScreen> {
         ),
       ),
     ];
+  }
+  
+  Widget _buildUpiAppButton(String appName, String emoji, Color color) {
+    return GestureDetector(
+      onTap: () => _launchSpecificUpiApp(appName),
+      child: Column(
+        children: [
+          Container(
+            width: 64,
+            height: 64,
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: color.withOpacity(0.3)),
+            ),
+            child: Center(
+              child: Text(
+                emoji,
+                style: const TextStyle(fontSize: 28),
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            appName,
+            style: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+  
+  void _launchSpecificUpiApp(String appName) async {
+    if (_booking == null) return;
+    
+    final amount = _booking!.actualAmount ?? _booking!.paymentAmount ?? 0.0;
+    final bookingId = _booking!.id;
+    final customerName = _booking!.customerName;
+    
+    // Show loading indicator
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Launching UPI payment...'),
+        duration: Duration(seconds: 1),
+      ),
+    );
+    
+    try {
+      final success = await UpiQrService.launchSpecificUpiApp(
+        appName: appName,
+        amount: amount,
+        bookingId: bookingId,
+        customerName: customerName,
+      );
+
+      if (!success && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+                'Unable to open $appName. Please ensure the app is installed.'),
+            backgroundColor: Colors.orange,
+            duration: const Duration(seconds: 3),
+            action: SnackBarAction(
+              label: 'Try Generic',
+              onPressed: () {
+                UpiQrService.launchUpiPayment(
+                  amount: amount,
+                  bookingId: bookingId,
+                  customerName: customerName,
+                );
+              },
+            ),
+          ),
+        );
+      } else if (success && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+                'Opening $appName with payment amount ₹${amount.toInt()}'),
+            backgroundColor: Colors.green,
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error launching UPI app: $e'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    }
   }
 
   List<Widget> _buildWalletForm() {
@@ -675,7 +856,15 @@ class _SecurePaymentFormScreenState extends State<SecurePaymentFormScreen> {
           FilteringTextInputFormatter.digitsOnly,
           LengthLimitingTextInputFormatter(10),
         ],
-        validator: _validatePhone,
+        validator: (value) {
+          if (value == null || value.isEmpty) {
+            return 'Phone number is required';
+          }
+          if (!RegExp(r'^[6-9]\d{9}$').hasMatch(value)) {
+            return 'Invalid phone number';
+          }
+          return null;
+        },
       ),
       const SizedBox(height: 16),
       Container(
@@ -730,6 +919,36 @@ class _CardNumberInputFormatter extends TextInputFormatter {
     );
   }
 }
+
+  // Helper method to build service detail rows
+  Widget _buildServiceDetailRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '$label: ',
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+              color: Colors.blue[800],
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: TextStyle(
+                fontSize: 13,
+                color: Colors.blue[700],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
 
 class _ExpiryDateInputFormatter extends TextInputFormatter {
   @override

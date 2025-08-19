@@ -91,31 +91,34 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
     switch (serviceType) {
       case 'water_purifier':
         return ServiceModel(
+          basePrice: 0, // Default base price, will be determined by admin later
           id: '1',
           name: 'water_purifier',
           displayName: 'Water Purifier Service',
           description: 'Complete water purifier maintenance and repair service',
-          basePrice: 500.0,
+          // Price will be determined by admin after service completion
           duration: 60,
           category: 'Home Appliances',
         );
       case 'ac_repair':
         return ServiceModel(
+          basePrice: 0, // Default base price, will be determined by admin later
           id: '2',
           name: 'ac_repair',
           displayName: 'AC Repair Service',
           description: 'Professional AC repair and maintenance service',
-          basePrice: 800.0,
+          // Price will be determined by admin after service completion
           duration: 90,
           category: 'Home Appliances',
         );
       case 'refrigerator_repair':
         return ServiceModel(
+          basePrice: 0, // Default base price, will be determined by admin later
           id: '3',
           name: 'refrigerator_repair',
           displayName: 'Refrigerator Repair Service',
           description: 'Expert refrigerator repair and maintenance service',
-          basePrice: 700.0,
+          // Price will be determined by admin after service completion
           duration: 75,
           category: 'Home Appliances',
         );
@@ -234,6 +237,9 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
 
     // Convert time from 12-hour to 24-hour format
     final preferredTime24h = _convertTo24HourFormat(_selectedTime!);
+
+    // Set default payment method to cash on service since we removed the payment method selection
+    _paymentMethod = AppConstants.cashOnService;
 
     final bookingData = {
       'serviceType': _service!.name,
@@ -547,50 +553,8 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
               ),
               SizedBox(height: 20),
 
-              // Payment Method Selection
-              Text(
-                'Payment Method',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              SizedBox(height: 16),
-
-              Column(
-                children: [
-                  RadioListTile<String>(
-                    title: Text('Cash on Service'),
-                    subtitle: Text('Pay after service completion'),
-                    value: AppConstants.cashOnService,
-                    groupValue: _paymentMethod,
-                    onChanged: (value) {
-                      setState(() {
-                        _paymentMethod = value!;
-                      });
-                    },
-                  ),
-                  RadioListTile<String>(
-                    title: Text('Cash in Hand'),
-                    subtitle: Text('Pay immediately to technician'),
-                    value: AppConstants.cashOnHand,
-                    groupValue: _paymentMethod,
-                    onChanged: (value) {
-                      setState(() {
-                        _paymentMethod = value!;
-                      });
-                    },
-                  ),
-                  RadioListTile<String>(
-                    title: Text('Online Payment'),
-                    subtitle: Text('Pay online now (Coming Soon)'),
-                    value: AppConstants.onlinePayment,
-                    groupValue: _paymentMethod,
-                    onChanged: null, // Disabled for now
-                  ),
-                ],
-              ),
-              SizedBox(height: 30),
+              // Payment method section removed as requested
+              SizedBox(height: 20),
 
               // Terms and Conditions
               Container(

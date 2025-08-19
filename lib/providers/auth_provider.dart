@@ -176,6 +176,13 @@ class AuthProvider with ChangeNotifier {
 
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('user_type', 'user');
+        
+        // Store user phone number for offline access
+        if (_user != null && _user!.phone.isNotEmpty) {
+          await prefs.setString('user_phone', _user!.phone);
+          print('📱 Stored user phone: ${_user!.phone}');
+        }
+        
         await ApiService.saveUserType('user');
       }
 
@@ -250,6 +257,7 @@ class AuthProvider with ChangeNotifier {
     await prefs.remove('refresh_token');
     await prefs.remove('token_expiry');
     await prefs.remove('user_type');
+    await prefs.remove('user_phone');
 
     // Also clear ApiService tokens
     await ApiService.removeToken();

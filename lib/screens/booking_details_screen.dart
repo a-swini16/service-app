@@ -297,14 +297,9 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
                     _buildDetailRow(
                         'Payment Method', booking!.paymentMethodDisplayName),
                     _buildDetailRow(
-                      'Estimated Amount',
-                      '₹${booking!.paymentAmount?.toInt() ?? 0}',
+                      'Amount',
+                      '₹${(booking!.status == 'completed' && booking!.actualAmount != null) ? booking!.actualAmount!.toInt() : (booking!.paymentAmount?.toInt() ?? 0)}',
                     ),
-                    if (booking!.actualAmount != null)
-                      _buildDetailRow(
-                        'Final Amount',
-                        '₹${booking!.actualAmount!.toInt()}',
-                      ),
                     const SizedBox(height: 8),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,

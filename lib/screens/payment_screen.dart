@@ -228,7 +228,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                   Text(
                       'Date: ${_booking != null ? DateFormat('dd MMM yyyy').format(_booking!.preferredDate) : 'N/A'}'),
                   Text('Time: ${_booking?.preferredTime ?? 'N/A'}'),
-                  Text('Amount: ₹${_service?.basePrice.toInt() ?? 0}'),
+                  Text('Amount: To be determined after service completion'),
                 ],
               ),
             ),
@@ -288,7 +288,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),
                   SizedBox(height: 8),
-                  Text('Service: ${_booking?.serviceDisplayName ?? 'N/A'}'),
+                  Text('Service: ${_service?.displayName ?? _booking?.serviceDisplayName ?? 'N/A'}'),
                   Text(
                       'Amount: ₹${_booking?.actualAmount?.toInt() ?? _booking?.paymentAmount?.toInt() ?? 0}'),
                   Text(
@@ -408,7 +408,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                         Text(
                           _isPostService
                               ? '₹${_booking?.actualAmount?.toInt() ?? _booking?.paymentAmount?.toInt() ?? 0}'
-                              : '₹${_service?.basePrice.toInt() ?? 0}',
+                              : 'To be determined after service completion',
                           style: TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,

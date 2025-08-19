@@ -289,7 +289,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 });
                               },
                             ),
-                            hintText: 'Create a strong password',
+                            hintText: 'Minimum 6 characters required',
+                            helperText: 'Password must be at least 6 characters long',
                           ),
                         ),
                         SizedBox(height: 20),

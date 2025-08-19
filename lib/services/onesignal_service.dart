@@ -159,12 +159,32 @@ class OneSignalService extends ChangeNotifier {
       // Handle navigation based on notification type
       switch (type) {
         case 'booking_update':
+        case 'booking_status_changed':
           if (bookingId != null) {
             // Navigate to booking details
             debugPrint('OneSignal: Navigate to booking: $bookingId');
           }
           break;
+        case 'worker_assigned':
+          if (bookingId != null) {
+            // Navigate to booking details with worker info
+            debugPrint('OneSignal: Navigate to booking with worker info: $bookingId');
+          }
+          break;
+        case 'service_started':
+          if (bookingId != null) {
+            // Navigate to booking status screen
+            debugPrint('OneSignal: Navigate to service in progress: $bookingId');
+          }
+          break;
+        case 'service_completed':
+          if (bookingId != null) {
+            // Navigate to payment screen
+            debugPrint('OneSignal: Navigate to payment for completed service: $bookingId');
+          }
+          break;
         case 'payment_required':
+        case 'payment_completed':
           if (bookingId != null) {
             // Navigate to payment screen
             debugPrint('OneSignal: Navigate to payment: $bookingId');

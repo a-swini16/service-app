@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:om_enterprises/constants/app_constants.dart';
 import 'package:socket_io_client/socket_io_client.dart' as io;
 import 'package:flutter/foundation.dart';
 import '../models/booking_model.dart';
@@ -48,14 +49,43 @@ class WebSocketService extends ChangeNotifier {
   Stream<NotificationModel> get notifications => _notificationController.stream;
   Stream<ConnectionStatus> get connectionStatus => _connectionController.stream;
 
-  // Initialize WebSocket connection
+  // Helper method to properly clean up existing socket
+  Future<void> _cleanupExistingSocket() async {
+    if (_socket != null) {
+      debugPrint('WebSocket: Cleaning up existing socket');
+      
+      // Cancel any existing timers
+      _heartbeatTimer?.cancel();
+      _reconnectTimer?.cancel();
+      
+      try {
+        _socket!.disconnect();
+        _socket!.dispose();
+      } catch (e) {
+        debugPrint('WebSocket: Error during socket cleanup: $e');
+      }
+      
+      _socket = null;
+      
+      // Small delay to ensure cleanup is complete
+      await Future.delayed(const Duration(milliseconds: 300));
+    }
+  }
+
+  // Initialize WebSocket connection with improved reliability
   Future<void> connect({
     required String token,
     required String userType,
     String? baseUrl,
   }) async {
-    if (_isConnected || _isConnecting) {
-      debugPrint('WebSocket: Already connected or connecting');
+    // Check if already connected or connecting
+    if (_isConnected) {
+      debugPrint('WebSocket: Already connected');
+      return;
+    }
+    
+    if (_isConnecting) {
+      debugPrint('WebSocket: Connection already in progress');
       return;
     }
 
@@ -64,18 +94,24 @@ class WebSocketService extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final serverUrl = baseUrl ?? 'http://10.0.2.2:5000';
-
+      // Properly clean up any existing socket
+      await _cleanupExistingSocket();
+      
+      final serverUrl = baseUrl ?? AppConstants.socketUrl;
       debugPrint('WebSocket: Connecting to $serverUrl');
 
       _socket = io.io(
           serverUrl,
           io.OptionBuilder()
-              .setTransports(['websocket', 'polling'])
-              .enableAutoConnect()
-              .enableReconnection()
-              .setReconnectionAttempts(5)
+              .setTransports(['websocket', 'polling']) // Try WebSocket first, fallback to polling
+              .disableAutoConnect() // We'll manually connect
+              .enableForceNew() // Force a new connection
+              .enableReconnection() 
+              .setReconnectionAttempts(10) // Increased from 5
               .setReconnectionDelay(3000)
+              .setReconnectionDelayMax(10000) // Cap at 10 seconds
+              .setTimeout(20000) // Increase timeout to 20 seconds
+              .setQuery({'token': token, 'userType': userType}) // Add auth params to URL
               .build());
 
       _setupEventHandlers();
@@ -87,6 +123,19 @@ class WebSocketService extends ChangeNotifier {
       });
 
       _socket!.connect();
+      
+      // Set a connection timeout
+      Timer(const Duration(seconds: 10), () {
+        if (_isConnecting && !_isConnected) {
+          debugPrint('WebSocket: Connection timeout after 10 seconds');
+          _isConnecting = false;
+          _connectionController.add(ConnectionStatus.error);
+          notifyListeners();
+          
+          // Try to reconnect
+          _scheduleReconnect(token, userType, baseUrl);
+        }
+      });
     } catch (e) {
       debugPrint('WebSocket: Connection error: $e');
       _isConnecting = false;
@@ -379,11 +428,58 @@ class WebSocketService extends ChangeNotifier {
     }
   }
 
-  // Start heartbeat to keep connection alive
+  // Start heartbeat to keep connection alive and detect disconnections
   void _startHeartbeat() {
     _heartbeatTimer?.cancel();
+    
+    // Track heartbeat responses
+    int missedHeartbeats = 0;
+    DateTime? lastHeartbeatTime;
+    String? lastToken;
+    String? lastUserType;
+    
+    _socket!.on('heartbeat_response', (data) {
+      missedHeartbeats = 0;
+      lastHeartbeatTime = DateTime.now();
+      debugPrint('WebSocket: Heartbeat response received');
+    });
+    
     _heartbeatTimer = Timer.periodic(_heartbeatInterval, (timer) {
       if (_socket != null && _isConnected) {
+        // If we didn't get a response to the previous heartbeat, increment missed count
+        if (missedHeartbeats > 0) {
+          debugPrint('WebSocket: Heartbeat failed, missed count: $missedHeartbeats');
+        }
+        
+        // If we've missed 2 consecutive heartbeats, force reconnect
+        if (missedHeartbeats >= 2) {
+          debugPrint('WebSocket: Multiple heartbeats missed, forcing reconnection');
+          
+          // Store authentication info before disconnecting
+          try {
+            final query = _socket!.opts?['query'] as Map<String, dynamic>?;
+            if (query != null) {
+              lastToken = query['token'] as String?;
+              lastUserType = query['userType'] as String?;
+            }
+          } catch (e) {
+            debugPrint('WebSocket: Error retrieving auth info: $e');
+          }
+          
+          _socket!.disconnect();
+          
+          // Try to reconnect immediately with stored auth info
+          if (lastToken != null && lastUserType != null) {
+            Timer(const Duration(milliseconds: 500), () {
+              debugPrint('WebSocket: Attempting reconnect with stored auth info');
+              connect(token: lastToken!, userType: lastUserType!);
+            });
+          }
+          return;
+        }
+        
+        // Increment missed count and send heartbeat
+        missedHeartbeats++;
         _socket!.emit('heartbeat');
       }
     });
@@ -395,7 +491,7 @@ class WebSocketService extends ChangeNotifier {
     _heartbeatTimer = null;
   }
 
-  // Schedule reconnection
+  // Schedule reconnection with improved exponential backoff and jitter
   void _scheduleReconnect(String token, String userType, String? baseUrl) {
     if (_reconnectAttempts >= _maxReconnectAttempts) {
       debugPrint('WebSocket: Max reconnection attempts reached');
@@ -404,12 +500,33 @@ class WebSocketService extends ChangeNotifier {
     }
 
     _reconnectAttempts++;
+    _isConnecting = true;
+    _connectionController.add(ConnectionStatus.connecting);
+    notifyListeners();
+    
+    // Use exponential backoff with jitter for reconnection
+    final baseDelay = _reconnectDelay.inMilliseconds;
+    final exponentialDelay = baseDelay * (1 << (_reconnectAttempts - 1)); // 2^(attempts-1) * baseDelay
+    final maxDelay = 30000; // Cap at 30 seconds
+    
+    // Add 0-30% random jitter to prevent thundering herd problem
+    final jitterPercent = (DateTime.now().millisecondsSinceEpoch % 30) / 100; // 0.00 to 0.29
+    final jitter = (exponentialDelay * jitterPercent).toInt();
+    
+    final actualDelay = Duration(milliseconds: (exponentialDelay + jitter).clamp(baseDelay, maxDelay));
+    
     debugPrint(
-        'WebSocket: Scheduling reconnect attempt $_reconnectAttempts in ${_reconnectDelay.inSeconds}s');
+        'WebSocket: Scheduling reconnect attempt $_reconnectAttempts in ${actualDelay.inSeconds}s (with ${(jitterPercent * 100).toStringAsFixed(1)}% jitter)');
 
     _reconnectTimer?.cancel();
-    _reconnectTimer = Timer(_reconnectDelay, () {
-      connect(token: token, userType: userType, baseUrl: baseUrl);
+    _reconnectTimer = Timer(actualDelay, () {
+      try {
+        connect(token: token, userType: userType, baseUrl: baseUrl);
+      } catch (e) {
+        debugPrint('WebSocket: Error during reconnection attempt: $e');
+        // If reconnection fails, schedule another attempt
+        _scheduleReconnect(token, userType, baseUrl);
+      }
     });
   }
 

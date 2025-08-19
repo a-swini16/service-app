@@ -16,6 +16,8 @@ class _HomeScreenState extends State<HomeScreen> {
   final List<ServiceModel> services = ServiceModel.getDefaultServices();
   final TextEditingController searchController = TextEditingController();
   String searchQuery = "";
+  
+
 
   // Track which service icons are being pressed
   List<bool> serviceIconsPressed = [];
@@ -98,7 +100,42 @@ class _HomeScreenState extends State<HomeScreen> {
         actions: [
           Consumer<NotificationProvider>(
             builder: (context, notificationProvider, child) {
-              return Container(); // Removed notification button
+              return Stack(
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.notifications),
+                    onPressed: () {
+                      Navigator.pushNamed(context, '/notifications');
+                    },
+                    tooltip: 'Notifications',
+                  ),
+                  if (notificationProvider.unreadCount > 0)
+                    Positioned(
+                      right: 8,
+                      top: 8,
+                      child: Container(
+                        padding: const EdgeInsets.all(2),
+                        decoration: BoxDecoration(
+                          color: Colors.red,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        constraints: const BoxConstraints(
+                          minWidth: 16,
+                          minHeight: 16,
+                        ),
+                        child: Text(
+                          '${notificationProvider.unreadCount}',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
+                ],
+              );
             },
           ),
         ],
@@ -208,6 +245,8 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               const SizedBox(height: 20),
 
+
+              
               // Offline Status Widget
               const OfflineStatusWidget(compact: true),
               const SizedBox(height: 10),

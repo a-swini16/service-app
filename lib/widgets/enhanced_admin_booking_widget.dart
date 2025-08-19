@@ -80,14 +80,14 @@ class _EnhancedAdminBookingWidgetState extends State<EnhancedAdminBookingWidget>
     }
   }
 
-  Future<void> _loadAvailableWorkers() async {
+  Future<void> _loadAvailableWorkers({String serviceType = 'all'}) async {
     try {
       final bookingProvider = Provider.of<BookingProvider>(context, listen: false);
-      final workers = await bookingProvider.getAvailableWorkers(serviceType: 'ac_repair');
+      final workers = await bookingProvider.getAvailableWorkers(serviceType: serviceType);
       setState(() {
         _availableWorkers = workers;
       });
-      Logger.info('✅ Loaded ${workers.length} available workers');
+      Logger.info('✅ Loaded ${workers.length} available workers for ${serviceType}');
     } catch (e) {
       Logger.error('❌ Error loading workers', error: e);
     }
@@ -233,9 +233,9 @@ class _EnhancedAdminBookingWidgetState extends State<EnhancedAdminBookingWidget>
     return Container(
       padding: EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
+        color: color.withOpacity(0.1),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
+        border: Border.all(color: Colors.orange.withOpacity(0.3)),
       ),
       child: Column(
         children: [
@@ -318,7 +318,7 @@ class _EnhancedAdminBookingWidgetState extends State<EnhancedAdminBookingWidget>
           _selectedStatusFilter = value;
         });
       },
-      selectedColor: Colors.deepPurple.withValues(alpha: 0.2),
+      selectedColor: Colors.deepPurple.withOpacity(0.2),
       checkmarkColor: Colors.deepPurple,
     );
   }
@@ -712,8 +712,20 @@ class _EnhancedAdminBookingWidgetState extends State<EnhancedAdminBookingWidget>
   }
 
   Future<void> _assignWorker(BookingModel booking) async {
+    // Always load fresh available workers for the specific service type
+    await _loadAvailableWorkers(serviceType: booking.serviceType);
+
+    // Check if we found any available workers
     if (_availableWorkers.isEmpty) {
-      await _loadAvailableWorkers();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('No available workers found for ${booking.serviceDisplayName}'),
+            backgroundColor: Colors.orange,
+          ),
+        );
+      }
+      return;
     }
 
     final workerId = await _showWorkerSelectionDialog(booking);

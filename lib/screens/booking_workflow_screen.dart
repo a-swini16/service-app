@@ -535,10 +535,7 @@ class _BookingWorkflowScreenState extends State<BookingWorkflowScreen> {
             _buildDetailRow(
                 'Payment Method', widget.booking.paymentMethodDisplayName),
             _buildDetailRow(
-                'Amount', '₹${widget.booking.paymentAmount?.toInt() ?? 0}'),
-            if (widget.booking.actualAmount != null)
-              _buildDetailRow(
-                  'Actual Amount', '₹${widget.booking.actualAmount!.toInt()}'),
+                'Amount', '₹${(widget.booking.status == 'completed' && widget.booking.actualAmount != null) ? widget.booking.actualAmount!.toInt() : (widget.booking.paymentAmount?.toInt() ?? 0)}'),
             if (widget.booking.adminNotes?.isNotEmpty == true)
               _buildDetailRow('Admin Notes', widget.booking.adminNotes!),
             if (widget.booking.workerNotes?.isNotEmpty == true)
